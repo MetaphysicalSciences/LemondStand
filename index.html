@@ -6,43 +6,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="game">
-    <img src="images/backround.png" id="background">
-
-    <div id="shop">
-      <h2>Buy Supplies</h2>
-      <div class="item">
-        <img src="images/lemon.png" alt="Lemons">
-        <button onclick="buy('lemons')">Buy Lemon ($1)</button>
-        <span id="lemons">0</span>
-      </div>
-      <div class="item">
-        <img src="images/ice.png" alt="Ice">
-        <button onclick="buy('ice')">Buy Ice ($0.5)</button>
-        <span id="ice">0</span>
-      </div>
-      <div class="item">
-        <img src="images/cup.png" alt="Cups">
-        <button onclick="buy('cups')">Buy Cup ($0.2)</button>
-        <span id="cups">0</span>
-      </div>
-    </div>
-
-    <div id="stand">
-      <img src="images/stand.png" alt="Stand">
-    </div>
-
-    <div id="status">
-      <p>Money: $<span id="money">20.00</span></p>
-      <p>Day: <span id="day">1</span></p>
-      <button onclick="startDay()">Start Day</button>
-    </div>
-
-    <div id="customers">
-      <!-- customers will appear here -->
-    </div>
-  </div>
-
+  <canvas id="gameCanvas"></canvas>
   <script src="script.js"></script>
 </body>
 </html>
