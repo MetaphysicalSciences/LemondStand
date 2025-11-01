@@ -1,12 +1,514 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lemonade Stand</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Happy Platformer :3</title>
+<style>
+:root{
+  --bg:#0b1020;
+  --panel:#0f1724;
+  --accent:#ffd166;
+  --accent2:#06d6a0;
+  --danger:#ef476f;
+  --retro-font: "Lucida Console", Monaco, monospace;
+}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#081021 0%, #07111a 100%);font-family:var(--retro-font);-webkit-font-smoothing:none;-moz-osx-font-smoothing:none}
+#container{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+#gamewrap{width:min(1100px,98vw);height:calc(min(700px,92vh));background:linear-gradient(180deg,#071428 0%, #071026 100%);box-shadow:0 10px 40px rgba(0,0,0,.6);position:relative;border:8px solid rgba(255,255,255,.03);overflow:hidden;display:flex;flex-direction:column}
+.canvaswrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
+canvas{background:linear-gradient(180deg,#0b1320 0%, #071026 100%);display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.hud{position:absolute;left:12px;top:12px;color:var(--accent);font-size:14px;padding:6px 10px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.04);backdrop-filter:blur(2px);border-radius:6px}
+.menu{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(3,5,10,.5),rgba(3,5,10,.65));z-index:30}
+.card{width:min(880px,92%);max-width:960px;padding:28px;border-radius:12px;background:linear-gradient(180deg,#0a1726,#06111f);box-shadow:0 10px 30px rgba(2,6,12,.6);border:2px solid rgba(255,255,255,.03);color:#dbeafe}
+.title{font-size:32px;color:var(--accent);text-align:center;margin:6px 0 12px}
+.subtitle{font-size:14px;color:#9fb7d9;text-align:center;margin-bottom:16px}
+.btnrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.button{background:linear-gradient(180deg,#0b5a9a,#083e73);padding:10px 18px;border-radius:8px;color:white;border:2px solid rgba(255,255,255,.06);cursor:pointer;font-weight:700;letter-spacing:.6px}
+.small{padding:8px 12px;font-size:13px}
+.settings{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.option{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(255,255,255,.02);border-radius:8px}
+.label{color:#cde7ff}
+.toggle{width:46px;height:26px;border-radius:99px;background:#2b3b4d;border:2px solid rgba(255,255,255,.04);position:relative;cursor:pointer}
+.knob{position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;transition:all .18s}
+.toggle.on{background:linear-gradient(90deg,var(--accent2),#2dd4bf);border-color:rgba(255,255,255,.08)}
+.toggle.on .knob{left:22px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:linear-gradient(90deg,rgba(255,255,255,.02),transparent)}
+.leveltag{color:#93c5fd;font-weight:800}
+.controls{position:absolute;right:12px;top:12px;color:#cfeefe;background:rgba(0,0,0,.14);padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.03)}
+.footer{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.02))}
+.flag{width:26px;height:26px;border-radius:4px;background:linear-gradient(180deg,var(--accent),#ffef9b);display:inline-block;margin-right:8px;border:2px solid rgba(0,0,0,.2)}
+.respnote{font-size:12px;color:#82cfff}
+.mobile-controls{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:space-between;padding:0 22px;pointer-events:none;z-index:50}
+.joystick{width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.03);backdrop-filter:blur(3px);pointer-events:auto;display:flex;align-items:center;justify-content:center}
+.joystick-inner{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.06)}
+.btns{display:flex;gap:12px;pointer-events:auto}
+.mobile-btn{width:84px;height:64px;border-radius:12px;background:linear-gradient(180deg,#0d2741,#06223a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;border:2px solid rgba(255,255,255,.04)}
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:8px;padding:8px 14px;background:rgba(0,0,0,.5);color:#fff;border-radius:8px;border:1px solid rgba(255,255,255,.04)}
+.pause-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,5,10,.5),rgba(3,5,10,.6));display:flex;align-items:center;justify-content:center;z-index:25}
+.smalltxt{font-size:12px;color:#bcd9ff}
+.retrogrid{position:absolute;inset:0;opacity:.05;background-image:linear-gradient(transparent 49%,rgba(255,255,255,.06) 50%),linear-gradient(90deg,transparent 49%,rgba(255,255,255,.04) 50%);background-size:40px 40px,40px 40px}
+</style>
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
-  <script src="script.js"></script>
+<div id="container">
+  <div id="gamewrap" role="application" aria-label="Happy Platformer">
+    <div class="topbar">
+      <div class="leveltag">Happy Platformer :3</div>
+      <div class="controls"><span id="livesdisp">Lives: 3</span> &nbsp; <span id="leveldisp">Level: 1</span></div>
+    </div>
+    <div class="canvaswrap">
+      <div class="retrogrid"></div>
+      <canvas id="screen"></canvas>
+      <div class="hud" id="hud">Score: 0</div>
+      <div class="menu" id="menu">
+        <div class="card">
+          <div class="title">Happy Platformer :3</div>
+          <div class="subtitle">retro rage platforming inspired by classic impossible games — reach the flag to advance</div>
+          <div class="btnrow">
+            <div class="button" id="startBtn">Start Game</div>
+            <div class="button small" id="levelsBtn">Select Level</div>
+            <div class="button small" id="settingsBtn">Settings</div>
+            <div class="button small" id="aboutBtn">How to Play</div>
+          </div>
+          <div class="settings" id="mainMenuExtra" style="display:none;margin-top:12px">
+            <div style="display:flex;justify-content:center;gap:10px">
+              <div class="smalltxt">Best of luck. You're gonna need it.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="pause" class="pause-overlay" style="display:none"><div class="card" style="padding:22px;text-align:center"><div class="title">Paused</div><div style="display:flex;gap:10px;justify-content:center"><div class="button" id="resumeBtn">Resume</div><div class="button" id="restartBtn2">Restart</div></div></div></div>
+      <div class="menu" id="levelsMenu" style="display:none">
+        <div class="card">
+          <div class="title">Select Level</div>
+          <div class="btnrow" style="margin-top:8px">
+            <div class="button small levelselect" data-l="1">Level 1</div>
+            <div class="button small levelselect" data-l="2">Level 2</div>
+            <div class="button small levelselect" data-l="3">Challenge</div>
+            <div class="button small" id="backFromLevels">Back</div>
+          </div>
+        </div>
+      </div>
+      <div class="menu" id="settingsMenu" style="display:none">
+        <div class="card">
+          <div class="title">Settings</div>
+          <div class="settings">
+            <div class="option"><div class="label">Mobile Controls</div><div class="toggle" id="toggleMobile"><div class="knob"></div></div></div>
+            <div class="option"><div class="label">Sound (on/off)</div><div class="toggle" id="toggleSound"><div class="knob"></div></div></div>
+            <div style="display:flex;justify-content:center"><div class="button" id="resetSettings">Reset</div><div style="width:10px"></div><div class="button" id="backFromSettings">Back</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="menu" id="aboutMenu" style="display:none">
+        <div class="card">
+          <div class="title">How to Play</div>
+          <div class="subtitle" style="color:#cfe7ff">Use arrow keys / A D to move, W / Up / Space to jump. Toggle mobile controls in Settings to show touch joystick and jump button. Reach the flag to progress. Expect unfair timing, tiny windows, and precise jumps.</div>
+          <div style="display:flex;justify-content:center;margin-top:12px"><div class="button" id="backFromAbout">Back</div></div>
+        </div>
+      </div>
+      <div class="mobile-controls" id="mobileControls" style="display:none">
+        <div class="joystick" id="joyBase"><div class="joystick-inner" id="joyKnob"></div></div>
+        <div class="btns"><div class="mobile-btn" id="jumpBtn">JUMP</div><div class="mobile-btn" id="pauseBtn">PAUSE</div></div>
+      </div>
+      <div id="toast" class="toast" style="display:none">Mobile controls enabled</div>
+    </div>
+    <div class="footer">
+      <div class="respnote">Responsive retro vibes • Pixel-perfect rage</div>
+      <div style="display:flex;gap:10px"><div class="flag"></div><div class="smalltxt">Reach the flag to win</div></div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('screen')
+const ctx=canvas.getContext('2d',{alpha:false})
+let WIDTH=880,HEIGHT=528,scale=1
+function resizeCanvas(){
+  const wrap=document.querySelector('#gamewrap')
+  const rect=wrap.getBoundingClientRect()
+  const targetW=rect.width-0
+  const targetH=rect.height-64
+  const ratio=16/9
+  let w=targetW,h=targetH
+  if(w/h>ratio)w=Math.round(h*ratio);else h=Math.round(w/ratio)
+  WIDTH=w;HEIGHT=h
+  canvas.width=WIDTH;canvas.height=HEIGHT
+  canvas.style.width=`${Math.floor(WIDTH)}px`;canvas.style.height=`${Math.floor(HEIGHT)}px`
+  canvas.style.maxWidth='100%';canvas.style.maxHeight='100%'
+}
+window.addEventListener('resize',resizeCanvas)
+resizeCanvas()
+let keys={}
+window.addEventListener('keydown',e=>{keys[e.key]=true;if(menuOpen && (e.key==='Enter')) startGame()})
+window.addEventListener('keyup',e=>{keys[e.key]=false})
+let mobileEnabled=JSON.parse(localStorage.getItem('hp_mobile')||'false')
+let soundEnabled=JSON.parse(localStorage.getItem('hp_sound')||'true')
+const toggleMobile=document.getElementById('toggleMobile')
+const toggleSound=document.getElementById('toggleSound')
+const mobileControls=document.getElementById('mobileControls')
+function setToggle(elem,val){if(val)elem.classList.add('on');else elem.classList.remove('on')}
+setToggle(toggleMobile,mobileEnabled)
+setToggle(toggleSound,soundEnabled)
+document.getElementById('toggleMobile').addEventListener('click',()=>{
+  mobileEnabled=!mobileEnabled
+  localStorage.setItem('hp_mobile',JSON.stringify(mobileEnabled))
+  setToggle(toggleMobile,mobileEnabled)
+  mobileControls.style.display=mobileEnabled?'flex':'none'
+  showToast(mobileEnabled?'Mobile controls enabled':'Mobile controls disabled')
+})
+document.getElementById('toggleSound').addEventListener('click',()=>{
+  soundEnabled=!soundEnabled
+  localStorage.setItem('hp_sound',JSON.stringify(soundEnabled))
+  setToggle(toggleSound,soundEnabled)
+  showToast(soundEnabled?'Sound on':'Sound off')
+})
+document.getElementById('resetSettings').addEventListener('click',()=>{
+  mobileEnabled=false; soundEnabled=true
+  localStorage.setItem('hp_mobile',JSON.stringify(mobileEnabled))
+  localStorage.setItem('hp_sound',JSON.stringify(soundEnabled))
+  setToggle(toggleMobile,mobileEnabled)
+  setToggle(toggleSound,soundEnabled)
+  mobileControls.style.display='none'
+  showToast('Settings reset')
+})
+document.getElementById('startBtn').addEventListener('click',()=>{closeAllMenus();startGame()})
+document.getElementById('settingsBtn').addEventListener('click',()=>{openMenu('settingsMenu')})
+document.getElementById('aboutBtn').addEventListener('click',()=>{openMenu('aboutMenu')})
+document.getElementById('levelsBtn').addEventListener('click',()=>{openMenu('levelsMenu')})
+document.getElementById('backFromSettings').addEventListener('click',()=>{openMenu('menu')})
+document.getElementById('backFromAbout').addEventListener('click',()=>{openMenu('menu')})
+document.getElementById('backFromLevels').addEventListener('click',()=>{openMenu('menu')})
+document.querySelectorAll('.levelselect').forEach(b=>b.addEventListener('click',e=>{closeAllMenus();currentLevel=parseInt(e.target.dataset.l);startGame()}))
+document.getElementById('resumeBtn').addEventListener('click',()=>{paused=false;document.getElementById('pause').style.display='none'})
+document.getElementById('restartBtn2').addEventListener('click',()=>{paused=false;document.getElementById('pause').style.display='none';startLevel(currentLevel)})
+document.getElementById('pauseBtn').addEventListener('click',()=>{paused=true;document.getElementById('pause').style.display='flex'})
+function openMenu(id){closeAllMenus();document.getElementById(id).style.display='flex';menuOpen=true}
+function closeAllMenus(){document.querySelectorAll('.menu').forEach(m=>m.style.display='none');document.getElementById('pause').style.display='none';menuOpen=false}
+let menuOpen=true
+let toastTimeout
+function showToast(t){
+  const ts=document.getElementById('toast');ts.textContent=t;ts.style.display='block';clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>ts.style.display='none',1500)
+}
+if(mobileEnabled){mobileControls.style.display='flex'}else{mobileControls.style.display='none'}
+function pixel(x){return Math.round(x)}
+let gravity=2000
+let playerSize=20
+let lives=3,score=0
+let currentLevel=1
+let levelData=[]
+levelData[1]={
+  w:2400,h:520,spawn:{x:60,y:420},flag:{x:2300,y:120},platforms:[],
+  hazards:[],
+  checkpoints:[],
+  desc:'Timing and tiny windows'
+}
+levelData[2]={
+  w:2600,h:520,spawn:{x:40,y:420},flag:{x:2550,y:80},platforms:[],hazards:[],desc:'Precision, moving saws, and squeezes'
+}
+levelData[3]={
+  w:3000,h:520,spawn:{x:40,y:420},flag:{x:2950,y:60},platforms:[],hazards:[],desc:'Challenge: the true rage gauntlet'
+}
+function makeLevel1(){
+  const L=levelData[1]
+  L.platforms=[]
+  L.platforms.push({x:0,y:472,w:2400,h:56})
+  L.platforms.push({x:220,y:380,w:120,h:16})
+  L.platforms.push({x:380,y:320,w:120,h:16})
+  L.platforms.push({x:560,y:260,w:90,h:16})
+  L.platforms.push({x:700,y:320,w:120,h:16})
+  L.platforms.push({x:900,y:380,w:120,h:16})
+  L.platforms.push({x:1080,y:320,w:80,h:16})
+  L.platforms.push({x:1220,y:260,w:100,h:16})
+  L.platforms.push({x:1360,y:200,w:80,h:16})
+  L.platforms.push({x:1500,y:260,w:160,h:16})
+  L.platforms.push({x:1720,y:320,w:120,h:16})
+  L.platforms.push({x:1880,y:380,w:120,h:16})
+  L.platforms.push({x:2060,y:320,w:160,h:16})
+  L.hazards=[]
+  L.hazards.push({type:'sweep',x:320,y:456,w:120,h:16,dir:1,range:160,spd:120})
+  L.hazards.push({type:'spike',x:430,y:456,w:20,h:16})
+  L.hazards.push({type:'moving',x:820,y:296,w:80,h:16,dir:1,range:220,spd:160})
+  L.hazards.push({type:'spike',x:1400,y:200,w:16,h:16})
+  L.hazards.push({type:'saw',x:1640,y:280,w:36,h:36,dir:1,range:320,spd:320})
+}
+function makeLevel2(){
+  const L=levelData[2]
+  L.platforms=[]
+  L.platforms.push({x:0,y:472,w:2600,h:56})
+  L.platforms.push({x:220,y:420,w:60,h:16})
+  L.platforms.push({x:320,y:360,w:60,h:16})
+  L.platforms.push({x:420,y:300,w:50,h:16})
+  L.platforms.push({x:520,y:260,w:40,h:16})
+  L.platforms.push({x:600,y:220,w:40,h:16})
+  L.platforms.push({x:680,y:180,w:36,h:16})
+  L.platforms.push({x:780,y:140,w:36,h:16})
+  L.platforms.push({x:900,y:360,w:120,h:16})
+  L.platforms.push({x:1100,y:320,w:80,h:16})
+  L.platforms.push({x:1280,y:260,w:90,h:16})
+  L.platforms.push({x:1460,y:220,w:80,h:16})
+  L.platforms.push({x:1640,y:180,w:60,h:16})
+  L.platforms.push({x:1820,y:220,w:100,h:16})
+  L.platforms.push({x:2000,y:260,w:120,h:16})
+  L.hazards=[]
+  L.hazards.push({type:'saw',x:980,y:340,w:40,h:40,dir:-1,range:500,spd:240})
+  L.hazards.push({type:'saw',x:1400,y:220,w:40,h:40,dir:1,range:420,spd:360})
+  L.hazards.push({type:'spinner',x:1180,y:420,w:18,h:18,dir:1,range:0,spd:0})
+  L.hazards.push({type:'gap',x:2120,y:472,w:120,h:56})
+  L.hazards.push({type:'narrow',x:2300,y:200,w:36,h:120})
+}
+function makeLevel3(){
+  const L=levelData[3]
+  L.platforms=[]
+  L.platforms.push({x:0,y:472,w:3000,h:56})
+  for(let i=0;i<18;i++){
+    L.platforms.push({x:160*i+80,y:120+((i%3)*48),w:80,h:16})
+  }
+  L.hazards=[]
+  for(let i=0;i<12;i++){
+    L.hazards.push({type:'saw',x:260+i*180,y:420,w:36,h:36,dir:1,range:140+((i%4)*60),spd:200+((i%5)*40)})
+  }
+  L.hazards.push({type:'squeeze',x:1480,y:160,w:40,h:160,dir:1,range:64,spd:220})
+  L.hazards.push({type:'spike',x:1960,y:456,w:100,h:16})
+  L.hazards.push({type:'moving',x:2200,y:200,w:80,h:16,dir:-1,range:600,spd:260})
+}
+makeLevel1();makeLevel2();makeLevel3()
+let cam={x:0,y:0}
+let player={x:0,y:0,vx:0,vy:0,w:playerSize,h:playerSize,onGround:false,inv:0}
+let paused=false
+let menuOpenFlag=false
+function startGame(){lives=3;score=0;currentLevel=1;startLevel(currentLevel);closeAllMenus()}
+function startLevel(n){
+  currentLevel=n
+  const L=levelData[n]
+  player.x=L.spawn.x;player.y=L.spawn.y;player.vx=0;player.vy=0;player.inv=0
+  cam.x=0;cam.y=0
+  document.getElementById('livesdisp').textContent='Lives: '+lives
+  document.getElementById('leveldisp').textContent='Level: '+currentLevel
+  document.getElementById('hud').textContent='Score: '+score
+  paused=false
+  menuOpen=false
+}
+startLevel(currentLevel)
+function rectsOverlap(a,b){return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y}
+function collidePlatform(p,plat){
+  if(p.x+p.w>plat.x && p.x<plat.x+plat.w){
+    const oldY=p.y-p.vy*(1/60)
+    if(oldY+p.h<=plat.y && p.y+p.h>=plat.y){
+      p.y=plat.y-p.h
+      p.vy=0
+      p.onGround=true
+      return true
+    }
+  }
+  return false
+}
+function updatePhysics(dt){
+  player.vy+=gravity*dt
+  let moveX=0
+  if(mobileEnabled && joyDir!==0) moveX=joyDir
+  if(keys['ArrowLeft']||keys['a']||keys['A']) moveX=-1
+  if(keys['ArrowRight']||keys['d']||keys['D']) moveX=1
+  const speed=280
+  player.vx=moveX*speed
+  player.x+=player.vx*dt
+  player.y+=player.vy*dt
+  player.onGround=false
+  const L=levelData[currentLevel]
+  for(let plat of L.platforms) collidePlatform(player,plat)
+  if(player.y+player.h>LEVELHEIGHT-0.5){player.y=LEVELHEIGHT-player.h;player.vy=0;player.onGround=true}
+  if(player.x<0)player.x=0
+  if(player.x+player.w>LEVELWIDTH)player.x=LEVELWIDTH-player.w
+}
+let LEVELWIDTH=levelData[currentLevel].w
+let LEVELHEIGHT=levelData[currentLevel].h
+function updateHazards(dt){
+  const L=levelData[currentLevel]
+  for(let h of L.hazards){
+    if(h.type==='sweep'){
+      h.x+=h.dir*h.spd*dt
+      if(h.x>h.range+h.initial)h.dir*=-1
+      if(h.x<h.initial-h.range)h.dir*=-1
+    }
+    if(!h.initial)h.initial=h.x
+    if(h.type==='moving'){
+      h.x+=h.dir*h.spd*dt
+      if(Math.abs(h.x-h.initial)>h.range)h.dir*=-1
+    }
+    if(h.type==='saw'){
+      h.x+=h.dir*h.spd*dt
+      if(Math.abs(h.x-h.initial)>h.range)h.dir*=-1
+    }
+    if(h.type==='squeeze'){
+      if(!h.pos)h.pos=0
+      h.pos+=h.dir*h.spd*dt
+      if(h.pos>h.range){h.pos=h.range;h.dir*=-1}
+      if(h.pos<0){h.pos=0;h.dir*=-1}
+    }
+  }
+}
+function checkHazardCollisions(){
+  const L=levelData[currentLevel]
+  for(let h of L.hazards){
+    let hx=h.x, hy=h.y, hw=h.w, hh=h.h
+    if(h.type==='squeeze'){hy+=h.pos;hh-=h.pos}
+    if(rectsOverlap(player,{x:hx,y:hy,w:hw,h:hh})){
+      if(player.inv<=0){player.inv=1.2;lives--;document.getElementById('livesdisp').textContent='Lives: '+lives;score=Math.max(0,score-10);document.getElementById('hud').textContent='Score: '+score; if(lives<=0){gameOver()}else{startLevel(currentLevel)}}
+    }
+  }
+}
+function checkFlag(){
+  const L=levelData[currentLevel]
+  const flag={x:L.flag.x,y:L.flag.y,w:24,h:48}
+  if(rectsOverlap(player,flag)){
+    score+=50
+    document.getElementById('hud').textContent='Score: '+score
+    if(currentLevel<3){currentLevel++;startLevel(currentLevel);showToast('Level '+currentLevel)}
+    else{openWin()}
+  }
+}
+function gameOver(){openMenu('menu');showToast('Game Over');menuOpen=true}
+function openWin(){openMenu('menu');showToast('You beat the gauntlet!')}
+let last=performance.now()
+let accum=0
+function loop(t){
+  const dt=Math.min(0.032,(t-last)/1000)
+  last=t
+  if(!paused && !menuOpen){
+    update(dt)
+  }
+  render()
+  requestAnimationFrame(loop)
+}
+function update(dt){
+  LEVELWIDTH=levelData[currentLevel].w
+  LEVELHEIGHT=levelData[currentLevel].h
+  if(player.inv>0)player.inv=Math.max(0,player.inv-dt)
+  if((keys[' ']||keys['w']||keys['ArrowUp']||keys['W']) && player.onGround){
+    player.vy=-680
+    player.onGround=false
+  }
+  updatePhysics(dt)
+  updateHazards(dt)
+  checkHazardCollisions()
+  checkFlag()
+  const camTargetX=player.x-WIDTH/2+player.w/2
+  cam.x+=(camTargetX-cam.x)*0.14
+  cam.y=0
+}
+function render(){
+  ctx.fillStyle='#06111f'
+  ctx.fillRect(0,0,WIDTH,HEIGHT)
+  ctx.save()
+  ctx.translate(-Math.floor(cam.x),-Math.floor(cam.y))
+  drawBackground()
+  drawLevel()
+  drawPlayer()
+  drawFlag()
+  ctx.restore()
+}
+function drawBackground(){
+  const cols=[['#031025','#071b2c'],['#07111a','#0b2030']]
+  for(let i=0;i<3;i++){
+    ctx.fillStyle=i%2?cols[0][1]:cols[0][0]
+    ctx.fillRect(i*800-400,0,800,HEIGHT)
+  }
+}
+function drawLevel(){
+  const L=levelData[currentLevel]
+  for(let plat of L.platforms){
+    drawRect(plat.x,plat.y,plat.w,plat.h,'#143b61','#093049')
+    ctx.fillStyle='rgba(255,255,255,.06)'
+    ctx.fillRect(plat.x,plat.y,plat.w,2)
+  }
+  for(let h of L.hazards){
+    if(h.type==='spike'){
+      drawRect(h.x,h.y,h.w,h.h,'#ff9b9b','#ef476f')
+      for(let s=0;s<Math.floor(h.w/8);s++){
+        ctx.beginPath();ctx.moveTo(h.x+s*8,h.y+h.h);ctx.lineTo(h.x+s*8+4,h.y+h.h-12);ctx.lineTo(h.x+s*8+8,h.y+h.h);ctx.fillStyle='#b02a3a';ctx.fill()
+      }
+    } else if(h.type==='saw'){
+      ctx.save();ctx.translate(h.x+h.w/2,h.y+h.h/2);ctx.rotate((performance.now()/1000)*h.spd/40 * (h.dir>0?1:-1))
+      ctx.fillStyle='#cbd5e1';ctx.beginPath();ctx.arc(-h.w/2,0,h.w/2,0,Math.PI*2);ctx.fill()
+      ctx.fillStyle='#94a3b8';ctx.beginPath();ctx.moveTo(-h.w/2,0);for(let i=0;i<8;i++){ctx.rotate(Math.PI/4);ctx.lineTo(-h.w/2+h.w/4,0)}ctx.fill()
+      ctx.restore()
+    } else if(h.type==='moving'){
+      drawRect(h.x,h.y,h.w,h.h,'#eab308','#f59e0b')
+    } else if(h.type==='squeeze'){
+      drawRect(h.x,h.y,h.w,h.h,'#f97316','#fb923c')
+      ctx.fillStyle='#06111f';ctx.fillRect(h.x,h.y+h.pos,h.w,h.h-h.pos)
+    } else if(h.type==='gap'){
+      ctx.fillStyle='#06111f';ctx.fillRect(h.x,h.y,h.w,h.h)
+    } else if(h.type==='spinner'){
+      ctx.fillStyle='#ef476f';ctx.fillRect(h.x,h.y,h.w,h.h)
+    } else if(h.type==='sweep'){
+      drawRect(h.x,h.y,h.w,h.h,'#ffb703','#ffb703')
+    } else if(h.type==='narrow'){
+      drawRect(h.x,h.y,h.w,h.h,'#7c3aed','#6d28d9')
+    }
+  }
+}
+function drawRect(x,y,w,h,c1,c2){
+  ctx.fillStyle=c1;ctx.fillRect(x,y,w,h)
+  ctx.fillStyle=c2;ctx.fillRect(x,y+h/2,w,h/2)
+  ctx.strokeStyle='rgba(0,0,0,.2)';ctx.strokeRect(x+.5,y+.5,w-1,h-1)
+}
+function drawPlayer(){
+  ctx.save()
+  ctx.translate(player.x,player.y)
+  if(player.inv>0)ctx.globalAlpha=player.inv%0.3>0.15?0.35:1
+  ctx.fillStyle='#90ee90'
+  ctx.fillRect(0,0,player.w,player.h)
+  ctx.fillStyle='#063a2b'
+  ctx.fillRect(2,2,player.w-4,6)
+  ctx.restore()
+}
+function drawFlag(){
+  const L=levelData[currentLevel]
+  const fx=L.flag.x,fy=L.flag.y
+  ctx.fillStyle='#fff1a8';ctx.fillRect(fx,fy,10,48)
+  ctx.fillStyle= '#ffd166';ctx.beginPath();ctx.moveTo(fx+10,fy+12);ctx.lineTo(fx+34,fy+6);ctx.lineTo(fx+10,fy+30);ctx.closePath();ctx.fill()
+}
+let joyBase=document.getElementById('joyBase'),joyKnob=document.getElementById('joyKnob')
+let joyDir=0,joyActive=false,joyStart=null
+function joyStartHandler(e){
+  joyActive=true;joyStart=getPos(e);moveKnob(getPos(e))
+}
+function joyMoveHandler(e){
+  if(!joyActive)return;moveKnob(getPos(e))
+}
+function joyEndHandler(e){joyActive=false;joyDir=0;joyKnob.style.transform='translate(0px,0px)'}
+function getPos(e){
+  if(e.touches && e.touches[0]) return {x:e.touches[0].clientX,y:e.touches[0].clientY}
+  return {x:e.clientX,y:e.clientY}
+}
+function moveKnob(pos){
+  const rect=joyBase.getBoundingClientRect()
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2
+  const dx=pos.x-cx,dy=pos.y-cy
+  const max=rect.width/2-18
+  const dist=Math.min(max,Math.hypot(dx,dy))
+  const ang=Math.atan2(dy,dx)
+  const nx=Math.cos(ang)*dist,ny=Math.sin(ang)*dist
+  joyKnob.style.transform=`translate(${nx}px,${ny}px)`
+  joyDir=Math.abs(nx)>18?(nx>0?1:-1):0
+}
+joyBase.addEventListener('touchstart',joyStartHandler);joyBase.addEventListener('mousedown',joyStartHandler)
+window.addEventListener('touchmove',joyMoveHandler);window.addEventListener('mousemove',joyMoveHandler)
+window.addEventListener('touchend',joyEndHandler);window.addEventListener('mouseup',joyEndHandler)
+document.getElementById('jumpBtn').addEventListener('touchstart',e=>{e.preventDefault();if(player.onGround){player.vy=-680}})
+document.getElementById('jumpBtn').addEventListener('mousedown',e=>{if(player.onGround){player.vy=-680}})
+document.getElementById('pauseBtn').addEventListener('click',()=>{paused=true;document.getElementById('pause').style.display='flex'})
+let lastTap=0
+canvas.addEventListener('dblclick',()=>{paused=!paused;document.getElementById('pause').style.display=paused?'flex':'none'})
+canvas.addEventListener('click',e=>{const t=performance.now();if(t-lastTap<250){if(player.onGround)player.vy=-680}lastTap=t})
+requestAnimationFrame(loop)
+document.addEventListener('visibilitychange',()=>{if(document.hidden)paused=true})
+setInterval(()=>{if(!menuOpen && !paused){document.getElementById('hud').textContent='Score: '+score} },500)
+(function initVars(){
+  LEVELWIDTH=levelData[currentLevel].w
+  LEVELHEIGHT=levelData[currentLevel].h
+})()
+if(mobileEnabled)showToast('Mobile controls enabled')
+</script>
 </body>
 </html>
